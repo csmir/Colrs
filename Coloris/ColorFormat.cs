@@ -1,0 +1,51 @@
+﻿namespace Coloris;
+
+/// <summary>
+///     Represents all color formats supported by Coloris.
+/// </summary>
+public enum ColorFormat
+{
+    /// <summary>
+    ///     sRGB format, standardized default web & UI color space. 
+    ///     Uses 8 bits per channel (0-255) for red, green, and blue components.
+    /// </summary>
+    RGB = 1,
+
+    /// <summary>
+    ///     sRGB format with alpha channel, standardized default web & UI color space.
+    ///     Uses 8 bits per channel (0-255) for red, green, blue, and alpha components.
+    /// </summary>
+    RGBA = 0,
+
+    /// <summary>
+    ///     HSL format, representing colors in terms of hue, saturation, and lightness.
+    /// </summary>
+    HSL = 3,
+
+    /// <summary>
+    ///     HSLA format, representing colors in terms of hue, saturation, lightness, and alpha (opacity).
+    /// </summary>
+    HSLA = 4,
+
+    /// <summary>
+    ///     HSV format, representing colors in terms of hue, saturation, and value (brightness).
+    /// </summary>
+    HSV = 2,
+
+    /// <summary>
+    ///     CIE-XYZ format, representing colors in a device-independent color space defined by the International Commission on Illumination (CIE).
+    /// </summary>
+    CIEXYZ = 5,
+
+    /// <summary>
+    ///     CIE-LAb format, representing colors in a perceptually uniform color space defined by the International Commission on Illumination (CIE).
+    /// </summary>
+    CIELAB = 6,
+
+    /// <summary>
+    ///     Hexadecimal format, representing colors as a string of hexadecimal digits (e.g., #RRGGBB or #RRGGBBAA).
+    /// </summary>
+    HEX = 7,
+
+    // We can add more formats later if needed, but these should cover most use cases.
+}

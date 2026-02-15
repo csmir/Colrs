@@ -8,6 +8,7 @@
 		<AssemblyVersion>1.0</AssemblyVersion>
 		<FileVersion>1.0.0.0</FileVersion>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     </PropertyGroup>
 
 </Project>

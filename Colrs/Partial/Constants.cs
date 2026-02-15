@@ -1,6 +1,6 @@
-﻿namespace Coloris;
+﻿namespace Colrs;
 
-public readonly partial struct Coloris
+public readonly partial struct Colr
 {
     const float
         REC_709_R = 0.2126f,
@@ -41,5 +41,7 @@ public readonly partial struct Coloris
         ZCURVE_SHIFT04 = 00303030303,
         ZCURVE_SHIFT02 = 01111111111;
 
-    const int CFACTOR = 8;
+    const int 
+        CFACTOR = 8,
+        MAX_DEGREES = 360;
 }

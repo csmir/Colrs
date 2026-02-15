@@ -6,38 +6,25 @@ using System.Runtime.InteropServices;
 
 [assembly: CLSCompliant(true)]
 
-namespace Coloris;
+namespace Colrs;
 
 /// <summary>
 ///     An sRGB color representation that uses a 32-bit unsigned integer to store the RGBA (red, green, blue, alpha) colour channels.
 /// </summary>
 [StructLayout(LayoutKind.Explicit)]
 [DebuggerDisplay("R = {R}, G = {G}, B = {B}, A = {A}")]
-public readonly partial struct Coloris :
-    ICloneable, 
-    IEquatable<Coloris>, 
-    IEquatable<Color>
+public readonly partial struct Colr :
+    IEquatable<Colr>,
+    IEquatable<Color>,
+    ICloneable
 {
     /// <summary>
-    ///     The 32-bit unsigned integer representation of the colour, 
-    ///     where the least significant byte represents the A (alpha) channel, followed by the B (blue), G (green), and R (red) channels in that order.
+    ///     The 32-bit unsigned integer representation of the colour.
     /// </summary>
-    /// <remarks>
-    ///     This value accesses A, B, G, R directly. Because in RGBA, RGB is more commonly addressed, 
-    ///     inverting this sequence tricks (namely x86) processors in accessing common individual fields more efficiently.
-    /// </remarks>
     [FieldOffset(0)]
     [CLSCompliant(false)]
     public readonly uint Value;
 
-    /// <summary>
-    ///     The A (alpha) colour channel, which controls the opacity of the colour. 
-    /// </summary>
-    /// <remarks>
-    ///     A value of 0 is fully transparent, while a value of 255 is fully opaque.
-    /// </remarks>
-    [FieldOffset(0)]
-    public readonly byte A;
 
     /// <summary>
     ///     The B (blue) colour channel.
@@ -45,7 +32,7 @@ public readonly partial struct Coloris :
     /// <remarks>
     ///     A value of 0 results in no blue being present in the colour, while a value of 255 results in full blue intensity.
     /// </remarks>
-    [FieldOffset(1)]
+    [FieldOffset(0)]
     public readonly byte B;
 
     /// <summary>
@@ -54,7 +41,7 @@ public readonly partial struct Coloris :
     /// <remarks>
     ///     A value of 0 results in no green being present in the colour, while a value of 255 results in full green intensity.
     /// </remarks>
-    [FieldOffset(2)]
+    [FieldOffset(1)]
     public readonly byte G;
 
     /// <summary>
@@ -63,31 +50,37 @@ public readonly partial struct Coloris :
     /// <remarks>
     ///     A value of 0 results in no red being present in the colour, while a value of 255 results in full red intensity.
     /// </remarks>
-    [FieldOffset(3)]
+    [FieldOffset(2)]
     public readonly byte R;
 
     /// <summary>
-    ///     Creates a new <see cref="Coloris"/> value based on the provided R, G, B and A channels.
+    ///     The A (alpha) colour channel, which controls the opacity of the colour. 
     /// </summary>
-    /// <param name="r">The red channel to create this value from.</param>
-    /// <param name="g">The green channel to create this value from.</param>
-    /// <param name="b">The blue channel to create this value from.</param>
-    /// <param name="a">The alpha (opacity) channel to create this value from.</param>
-    public Coloris(byte r, byte g, byte b, byte a = byte.MaxValue)
+    /// <remarks>
+    ///     A value of 0 is fully transparent, while a value of 255 is fully opaque.
+    /// </remarks>
+    [FieldOffset(3)]
+    public readonly byte A;
+
+    /// <summary>
+    ///     Creates a new <see cref="Colr"/> value based on the provided 32-bit sRGB (A) representation.
+    /// </summary>
+    /// <param name="argb">A 32 bit representation of RGBA.</param>
+    [CLSCompliant(false)]
+    public Colr(uint argb) 
+        => Value = argb;
+
+    #region Internal Constructors
+
+    private Colr(byte r, byte g, byte b, byte a = byte.MaxValue)
     {
+        A = a;
         R = r;
         G = g;
         B = b;
-        A = a;
     }
 
-    /// <summary>
-    ///     Creates a new <see cref="Coloris"/> value based on the provided hue, saturation and value (brightness).
-    /// </summary>
-    /// <param name="h">The hue to create this value from.</param>
-    /// <param name="s">The saturation to create this value from.</param>
-    /// <param name="v">The value (brightness) to create this value from.</param>
-    public Coloris(float h, float s, float v)
+    private Colr(float h, float s, float v)
     {
         A = byte.MaxValue;
 
@@ -124,40 +117,59 @@ public readonly partial struct Coloris :
         }
     }
 
-    /// <summary>
-    ///     Creates a new <see cref="Coloris"/> value based on the provided 32-bit sRGB (A) representation.
-    /// </summary>
-    /// <param name="rgba">A 32 bit representation of RGBA.</param>
-    [CLSCompliant(false)]
-    public Coloris(uint rgba)
+    private Colr(float h, float s, float l, float a = 1f)
     {
-        R = (byte)(rgba & 0xFF);
-        G = (byte)((rgba >> 8) & 0xFF);
-        B = (byte)((rgba >> 16) & 0xFF);
-        A = (byte)((rgba >> 24) & 0xFF);
+        A = (byte)(a * byte.MaxValue);
+
+        var c = (1 - Math.Abs(2 * l - 1)) * s;
+        var x = c * (1 - Math.Abs((h / 60) % 2 - 1));
+        var m = l - c / 2;
+
+        byte r, g, b;
+
+        if (h < 60)
+        {
+            r = (byte)(c * byte.MaxValue);
+            g = (byte)(x * byte.MaxValue);
+            b = 0;
+        }
+        else if (h < 120)
+        {
+            r = (byte)(x * byte.MaxValue);
+            g = (byte)(c * byte.MaxValue);
+            b = 0;
+        }
+        else if (h < 180)
+        {
+            r = 0;
+            g = (byte)(c * byte.MaxValue);
+            b = (byte)(x * byte.MaxValue);
+        }
+        else if (h < 240)
+        {
+            r = 0;
+            g = (byte)(x * byte.MaxValue);
+            b = (byte)(c * byte.MaxValue);
+        }
+        else if (h < 300)
+        {
+            r = (byte)(x * byte.MaxValue);
+            g = 0;
+            b = (byte)(c * byte.MaxValue);
+        }
+        else
+        {
+            r = (byte)(c * byte.MaxValue);
+            g = 0;
+            b = (byte)(x * byte.MaxValue);
+        }
+
+        R = (byte)(r + m * byte.MaxValue);
+        G = (byte)(g + m * byte.MaxValue);
+        B = (byte)(b + m * byte.MaxValue);
     }
 
-    /// <summary>
-    ///     Gets the minimum value among the RGB channels of the color.
-    /// </summary>
-    /// <returns>The smallest value in the set of R, G, B in this color.</returns>
-    public int Min()
-    {
-        GetMinMax(out var min, out _);
-
-        return min;
-    }
-
-    /// <summary>
-    ///     Gets the maximum value among the RGB channels of the color. 
-    /// </summary>
-    /// <returns>The largest value in the set of R, G, B in this color.</returns>
-    public int Max()
-    {
-        GetMinMax(out _, out var max);
-
-        return max;
-    }
+    #endregion
 
     /// <summary>
     ///     Gets the luminosity of the color according to the Rec. 709 standard, 
@@ -191,8 +203,8 @@ public readonly partial struct Coloris :
     ///     Gets the perceived brightness of the current color according to the HSP color model using the BT.601 coefficients.
     /// </summary>
     /// <returns>Perceived brightness in accordance to BT.601 coefficients.</returns>
-    public double GetPerceivedBrightness()
-        => Math.Sqrt(
+    public float GetPerceivedBrightness()
+        => (float)Math.Sqrt(
             BT_601_R * Math.Pow(R, 2) +
             BT_601_G * Math.Pow(G, 2) +
             BT_601_B * Math.Pow(B, 2)
@@ -236,16 +248,21 @@ public readonly partial struct Coloris :
 
         GetMinMax(out var min, out var max);
 
-        var delta = max - min;
-        
+        float delta = max - min;
         float hue;
 
-        if (R == max)
-            hue = (G - B) / delta;
-        else if (G == max)
-            hue = (B - R) / delta + 2f;
+        int r, g, b;
+
+        r = R;
+        g = G;
+        b = B;
+
+        if (r == max)
+            hue = (g - b) / delta;
+        else if (g == max)
+            hue = (b - r) / delta + 2f;
         else
-            hue = (R - G) / delta + 4f;
+            hue = (r - g) / delta + 4f;
 
         hue *= 60f;
         if (hue < 0f)
@@ -294,7 +311,8 @@ public readonly partial struct Coloris :
     ///     Gets the contrast ratio between this color and another color according to the WCAG guidelines.
     /// </summary>
     /// <param name="o">The color to compare to to define the contrast.</param>
-    public double GetContrastRatio(Coloris o)
+    /// <returns>The contrast ratio between the two colors, where a higher value indicates greater contrast.</returns>
+    public double GetContrastRatio(Colr o)
     {
         var l1 = GetRelativeLuminance();
 
@@ -308,8 +326,8 @@ public readonly partial struct Coloris :
     ///     providing a simple measure of how different the two colors are based on their red, green, and blue channel values.
     /// </summary>
     /// <param name="o">The other color to calculate the Euclidian distance from.</param>
-    /// <returns></returns>
-    public double GetEuclidian(Coloris o)
+    /// <returns>The Euclidean distance between the two colors in RGB space, where a higher value indicates greater difference.</returns>
+    public double GetEuclidian(Colr o)
     {
         var deltaR = R - o.R;
         var deltaG = G - o.G;
@@ -326,8 +344,8 @@ public readonly partial struct Coloris :
     ///     providing a more perceptually accurate measure of color difference that accounts for human visual sensitivity to different colors.
     /// </summary>
     /// <param name="o">The other color to calculate deltaE from.</param>
-    /// <returns></returns>
-    public double GetDeltaE(Coloris o)
+    /// <returns>The CIE Delta E 1976 color difference between the two colors, where a higher value indicates greater perceptual difference.</returns>
+    public double GetDeltaE(Colr o)
     {
         // https://stackoverflow.com/questions/9018016/how-to-compare-two-colors-for-similarity-difference
         // use CIE-LAB color space for better perceptual distance measurement
@@ -351,8 +369,8 @@ public readonly partial struct Coloris :
     /// <remarks>
     ///     This produces a color that is opposite on the color wheel and provides maximum contrast to the original color.
     /// </remarks>
-    /// <returns>A new <see cref="Coloris"/> value that is the complementary value of the current color.</returns>
-    public Coloris GetComplementaryColor()
+    /// <returns>A new <see cref="Colr"/> value that is the complementary value of the current color.</returns>
+    public Colr GetComplementaryColor()
     {
         GetHSV(out var h, out var s, out var v);
 
@@ -364,8 +382,8 @@ public readonly partial struct Coloris :
     /// <summary>
     ///     Gets the gamma corrected color by applying a gamma function over R, G, B while retaining the alpha channel.
     /// </summary>
-    /// <returns>A new <see cref="Coloris"/> value that is the gamma-corrected value of the current color.</returns>
-    public Coloris GetGammaCorrectedColor()
+    /// <returns>A new <see cref="Colr"/> value that is the gamma-corrected value of the current color.</returns>
+    public Colr GetGammaCorrectedColor()
     {
         return new(
             (byte)(Math.Clamp(Gamma(R), 0, 1) * byte.MaxValue),
@@ -443,19 +461,41 @@ public readonly partial struct Coloris :
         => (GetHue(), GetSaturation(), GetBrightness(), A / 255f);
 
     /// <summary>
+    ///     Gets the minimum value among the RGB channels of the color.
+    /// </summary>
+    /// <returns>The smallest value in the set of R, G, B in this color.</returns>
+    public int Min()
+    {
+        GetMinMax(out var min, out _);
+
+        return min;
+    }
+
+    /// <summary>
+    ///     Gets the maximum value among the RGB channels of the color. 
+    /// </summary>
+    /// <returns>The largest value in the set of R, G, B in this color.</returns>
+    public int Max()
+    {
+        GetMinMax(out _, out var max);
+
+        return max;
+    }
+
+    /// <summary>
     ///     Checks equality to another object.
     /// </summary>
     /// <param name="obj"></param>
     /// <returns><see langword="true"/> if the other object's value equals the current value; otherwise <see langword="false"/>.</returns>
     public override bool Equals([NotNullWhen(true)] object? obj)
-        => obj is Coloris other && Value == other.Value;
+        => obj is Colr other && Value == other.Value;
 
     /// <summary>
-    ///     Checks equality to another <see cref="Coloris"/> value by comparing their inner <see cref="Value"/>.
+    ///     Checks equality to another <see cref="Colr"/> value by comparing their inner <see cref="Value"/>.
     /// </summary>
     /// <param name="other">The value to check equality for.</param>
     /// <returns><see langword="true"/> if the other value equals the current value; otherwise <see langword="false"/>.</returns>
-    public bool Equals(Coloris other)
+    public bool Equals(Colr other)
         => other.Value == Value;
 
     /// <summary>
@@ -466,7 +506,10 @@ public readonly partial struct Coloris :
     public bool Equals(Color other)
         => other.R == R && other.G == G && other.B == B && other.A == A;
 
-    /// <inheritdoc />
+    /// <summary>
+    ///     Gets the hash code for the current value by returning the hash code of the inner <see cref="Value"/>.
+    /// </summary>
+    /// <returns>A hash code for the current value.</returns>
     public override int GetHashCode()
         => Value.GetHashCode();
 
@@ -529,6 +572,11 @@ public readonly partial struct Coloris :
                 throw new ArgumentException("Invalid color format", nameof(format));
         }
     }
+
+    object ICloneable.Clone()
+        => new Colr(Value);
+
+    #region Optimization
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void GetMinMax(out int min, out int max)
@@ -593,23 +641,34 @@ public readonly partial struct Coloris :
         return r | g | b | a;
     }
 
-    object ICloneable.Clone()
-        => new Coloris(Value);
+    #endregion
 
     #region Operators
 
-    public static bool operator ==(Coloris left, Coloris right) 
+    /// <summary>
+    ///     Compares two <see cref="Colr"/> values for equality by comparing their inner <see cref="Value"/>.
+    /// </summary>
+    public static bool operator ==(Colr left, Colr right) 
         => left.Equals(right);
 
-    public static bool operator !=(Coloris left, Coloris right) 
+    /// <summary>
+    ///     Compares two <see cref="Colr"/> values for non-equality by comparing their inner <see cref="Value"/>.
+    /// </summary>
+    public static bool operator !=(Colr left, Colr right) 
         => !left.Equals(right);
 
+    /// <summary>
+    ///     Converts a <see cref="Colr"/> value to a 32-bit unsigned integer representation of RGBA.
+    /// </summary>
     [CLSCompliant(false)]
-    public static implicit operator uint(Coloris color) 
+    public static implicit operator uint(Colr color) 
         => (uint)(color.R | (color.G << 8) | (color.B << 16) | (color.A << 24));
 
+    /// <summary>
+    ///     Converts a 32-bit unsigned integer representation of RGBA to a <see cref="Colr"/> value by interpreting the least significant byte as the A (alpha) channel, followed by the B (blue), G (green), and R (red) channels in that order.
+    /// </summary>
     [CLSCompliant(false)]
-    public static implicit operator Coloris(uint rgba)
+    public static implicit operator Colr(uint rgba)
         => new(rgba);
 
     #endregion

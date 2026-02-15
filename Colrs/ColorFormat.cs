@@ -1,4 +1,4 @@
-﻿namespace Coloris;
+﻿namespace Colrs;
 
 /// <summary>
 ///     Represents all color formats supported by Coloris.

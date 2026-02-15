@@ -1,4 +1,4 @@
-﻿namespace Coloris;
+﻿namespace Colrs;
 
 /// <summary>
 ///     Generates an independent composite index based on the color's active space (sRGB value).

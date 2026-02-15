@@ -1,6 +1,6 @@
-﻿namespace Coloris;
+﻿namespace Colrs;
 
-public readonly partial struct Coloris
+public readonly partial struct Colr
 {
     // Gets CIE XYZ values from linear RGB channels, assuming sRGB color space and D65 illuminant.
     // Variables derived from the standard RGB to XYZ conversion matrix for sRGB with D65 white point
@@ -28,7 +28,7 @@ public readonly partial struct Coloris
 
     // Gets linearized value from sRGB channel.
     // C is in range [0,255]
-    // Returns linear value in range [0,1]
+    // Returns linear value in range [0,1]S
     private static float VLinear(float C)
     {
         var v = C / 255f;
@@ -67,10 +67,10 @@ public readonly partial struct Coloris
     // Returns the new angle in range [0,360].
     private static float Rotate(float angle, float degrees)
     {
-        angle = (angle + degrees) % 360;
+        angle = (angle + degrees) % MAX_DEGREES;
 
         if (angle < 0)
-            angle += 360;
+            angle += MAX_DEGREES;
 
         return angle;
     }

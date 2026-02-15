@@ -1,7 +1,9 @@
-﻿namespace Coloris;
+﻿namespace Colrs;
 
-public readonly partial struct Coloris
+public readonly partial struct Colr
 {
+    // Combines hue, luminosity, and brightness into a single value for sorting. Hue is weighted most heavily, followed by luminosity and then brightness.
+    // If smooth is true, the luminosity and brightness values are inverted for odd hue values to create a smoother gradient when sorting.
     private double GetHLVIndex(bool smooth)
     {
         var lum = GetLuminosity();
@@ -20,6 +22,7 @@ public readonly partial struct Coloris
         return h + lum + v;
     }
 
+    // Combines inverted hue, luminosity, and brightness into a single value for sorting. Inverted hue is weighted most heavily, followed by luminosity and then brightness.
     private double GetHLVInvertedIndex(bool smooth)
     {
         var lum = GetLuminosity();
@@ -40,6 +43,7 @@ public readonly partial struct Coloris
         return h2 + v2 + lum;
     }
 
+    // Combines hue, saturation, and value into a single value for sorting. Hue is weighted most heavily, followed by saturation and then value.
     private double GetHSVIndex()
     {
         GetHSV(out var h, out var s, out var v);

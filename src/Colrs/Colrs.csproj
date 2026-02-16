@@ -11,6 +11,7 @@
 		<FileVersion>1.0.0.0</FileVersion>
 		
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 
 		<PackageId>Colrs</PackageId>

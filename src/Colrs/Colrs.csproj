@@ -5,6 +5,7 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
 		<IsAotCompatible>true</IsAotCompatible>
+		<NoWarn>IDE0130</NoWarn>
 		
 		<AssemblyVersion>1.0</AssemblyVersion>
 		<PackageVersion>1.0.0-alpha.1</PackageVersion> <!--\-alpha.1-->

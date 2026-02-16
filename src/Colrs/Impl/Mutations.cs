@@ -7,7 +7,7 @@ public readonly partial struct Colr
     /// </summary>
     /// <param name="amount"></param>
     /// <returns>A new <see cref="Colr"/> value with the included mutation.</returns>
-    public Colr ShiftRed(int amount) 
+    public Colr ShiftRed(int amount)
         => new(ClampToByte(R, amount), G, B, A);
 
     /// <summary>
@@ -15,7 +15,7 @@ public readonly partial struct Colr
     /// </summary>
     /// <param name="value"></param>
     /// <returns>A new <see cref="Colr"/> value with the included mutation.</returns>
-    public Colr SetRed(byte value) 
+    public Colr SetRed(byte value)
         => new(value, G, B, A);
 
     /// <summary>
@@ -23,7 +23,7 @@ public readonly partial struct Colr
     /// </summary>
     /// <param name="amount"></param>
     /// <returns>A new <see cref="Colr"/> value with the included mutation.</returns>
-    public Colr ShiftGreen(int amount) 
+    public Colr ShiftGreen(int amount)
         => new(R, ClampToByte(G, amount), B, A);
 
     /// <summary>
@@ -31,7 +31,7 @@ public readonly partial struct Colr
     /// </summary>
     /// <param name="value"></param>
     /// <returns>A new <see cref="Colr"/> value with the included mutation.</returns>
-    public Colr SetGreen(byte value) 
+    public Colr SetGreen(byte value)
         => new(R, value, B, A);
 
     /// <summary>
@@ -39,7 +39,7 @@ public readonly partial struct Colr
     /// </summary>
     /// <param name="amount"></param>
     /// <returns>A new <see cref="Colr"/> value with the included mutation.</returns>
-    public Colr ShiftBlue(int amount) 
+    public Colr ShiftBlue(int amount)
         => new(R, G, ClampToByte(B, amount), A);
 
     /// <summary>
@@ -47,7 +47,7 @@ public readonly partial struct Colr
     /// </summary>
     /// <param name="value"></param>
     /// <returns>A new <see cref="Colr"/> value with the included mutation.</returns>
-    public Colr SetBlue(byte value) 
+    public Colr SetBlue(byte value)
         => new(R, G, value, A);
 
     /// <summary>
@@ -55,7 +55,7 @@ public readonly partial struct Colr
     /// </summary>
     /// <param name="amount"></param>
     /// <returns>A new <see cref="Colr"/> value with the included mutation.</returns>
-    public Colr ShiftAlpha(int amount) 
+    public Colr ShiftAlpha(int amount)
         => new(R, G, B, ClampToByte(A, amount));
 
     /// <summary>
@@ -63,7 +63,7 @@ public readonly partial struct Colr
     /// </summary>
     /// <param name="value"></param>
     /// <returns>A new <see cref="Colr"/> value with the included mutation.</returns>
-    public Colr SetAlpha(byte value) 
+    public Colr SetAlpha(byte value)
         => new(R, G, B, value);
 
     /// <summary>
@@ -125,7 +125,7 @@ public readonly partial struct Colr
 
         var hsla = GetHSLA();
         hsla.S = (hsla.S + amount) % 1f;
-        
+
         if (hsla.S < 0)
             hsla.S += 1f;
         else if (hsla.S > 1f)

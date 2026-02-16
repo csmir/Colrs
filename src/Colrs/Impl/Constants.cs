@@ -41,7 +41,7 @@ public readonly partial struct Colr
         ZCURVE_SHIFT04 = 00303030303,
         ZCURVE_SHIFT02 = 01111111111;
 
-    const int 
+    const int
         CFACTOR = 8,
         MAX_DEGREES = 360;
 }

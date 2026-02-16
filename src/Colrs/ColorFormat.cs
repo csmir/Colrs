@@ -6,13 +6,13 @@
 public enum ColorFormat
 {
     /// <summary>
-    ///     sRGB format, standardized default web & UI color space. 
+    ///     sRGB format, standardized default web and UI color space. 
     ///     Uses 8 bits per channel (0-255) for red, green, and blue components.
     /// </summary>
     RGB = 1,
 
     /// <summary>
-    ///     sRGB format with alpha channel, standardized default web & UI color space.
+    ///     sRGB format with alpha channel, standardized default web and UI color space.
     ///     Uses 8 bits per channel (0-255) for red, green, blue, and alpha components.
     /// </summary>
     RGBA = 0,

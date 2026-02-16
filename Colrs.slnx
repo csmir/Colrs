@@ -1,4 +1,4 @@
 <Solution>
-  <Project Path="Colrs/Colrs.csproj" />
-  <Project Path="Colrs.Tests/Colrs.Tests.csproj" Id="eec8fb75-2d89-451a-9d9a-072158c72f16" />
+  <Project Path="src/Colrs/Colrs.csproj" />
+  <Project Path="src/Colrs.Tests/Colrs.Tests.csproj" Id="eec8fb75-2d89-451a-9d9a-072158c72f16" />
 </Solution>

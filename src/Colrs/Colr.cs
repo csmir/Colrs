@@ -1,16 +1,56 @@
 ﻿using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
+// Supports F# and VB.NET. Some APIs are marked as CLSCompliant(false) due to unsigned types, but the main API is CLS compliant.
 [assembly: CLSCompliant(true)]
 
 namespace Colrs;
 
 /// <summary>
+///     This type directly equates the memory layout of System.Drawing.Color.
+/// </summary>
+/// <remarks>
+///     The reason for this type existing is because the overhead of creating a new System.Drawing.Color is absurd. It quite possibly is the worst performing struct in the entire .NET framework.
+///     Rant aside, <see cref="Colr.ToColor"/> directly transforms the memory of a <see cref="Colr"/> to a <see cref="Color"/> by using <see cref="Unsafe.As{TFrom, TTo}(ref TFrom)"/> over this struct.
+/// </remarks>
+[StructLayout(LayoutKind.Explicit)]
+internal struct SystemColor
+{
+    /// <summary>
+    ///     string? System.Drawing.Color.name. Because its a string, it can be set to 0 in an nint to fit in the same memory.
+    /// </summary>
+    [FieldOffset(0)]
+    public nint Name;
+
+    /// <summary>
+    ///     long? System.Drawing.Color.value. This is the value that has equality to Colr.Value.
+    /// </summary>
+    [FieldOffset(8)]
+    public long Value;
+
+    /// <summary>
+    ///     short System.Drawing.Color.knownColor, but it can be set to 0 in a short to fit in the same memory.
+    /// </summary>
+    [FieldOffset(16)]
+    public short KnownColor;
+
+    /// <summary>
+    ///     short System.Drawing.Color.state. This is the value that has to be set to 0x0002 for the Color to be valid when using the Value field.
+    /// </summary>
+    [FieldOffset(18)]
+    public short State;
+}
+
+/// <summary>
 ///     An sRGB color representation that uses a 32-bit unsigned integer to store the RGBA (red, green, blue, alpha) colour channels.
 /// </summary>
+/// <remarks>
+///     Create a new Colr from ARGB uint representation of the color. Other color formats are accepted using static FromX methods.
+/// </remarks>
 [StructLayout(LayoutKind.Explicit)]
 [DebuggerDisplay("R = {R}, G = {G}, B = {B}, A = {A}")]
 public readonly partial struct Colr :
@@ -24,7 +64,6 @@ public readonly partial struct Colr :
     [FieldOffset(0)]
     [CLSCompliant(false)]
     public readonly uint Value;
-
 
     /// <summary>
     ///     The B (blue) colour channel.
@@ -67,7 +106,7 @@ public readonly partial struct Colr :
     /// </summary>
     /// <param name="argb">A 32 bit representation of RGBA.</param>
     [CLSCompliant(false)]
-    public Colr(uint argb) 
+    public Colr(uint argb)
         => Value = argb;
 
     #region Internal Constructors
@@ -177,8 +216,8 @@ public readonly partial struct Colr :
     /// </summary>
     /// <returns>True luminosity in accordance to Rec. 709 coefficients over V-linear.</returns>
     public float GetLuminosity()
-        => (REC_709_R * VLinear(R)) 
-         + (REC_709_G * VLinear(G)) 
+        => (REC_709_R * VLinear(R))
+         + (REC_709_G * VLinear(G))
          + (REC_709_B * VLinear(B));
 
     /// <summary>
@@ -233,8 +272,8 @@ public readonly partial struct Colr :
     /// </summary>
     /// <returns>The Z-order value for this color.</returns>
     public int GetZValue()
-        => ZCurve(R) 
-         + (ZCurve(G) << 1) 
+        => ZCurve(R)
+         + (ZCurve(G) << 1)
          + (ZCurve(B) << 2);
 
     /// <summary>
@@ -423,7 +462,7 @@ public readonly partial struct Colr :
 
         return (h, s, v);
     }
-    
+
     /// <summary>
     ///     Gets the CIE-XYZ color space representation of the current value as X, Y, Z.
     /// </summary>
@@ -480,6 +519,21 @@ public readonly partial struct Colr :
         GetMinMax(out _, out var max);
 
         return max;
+    }
+
+    /// <summary>
+    ///     Creates a <see cref="Color"/> from the current <see cref="Colr"/> instance.
+    /// </summary>
+    /// <returns>A new <see cref="Color"/> created from the sRGB value of this <see cref="Colr"/>.</returns>
+    public Color ToColor()
+    {
+        var systemColor = new SystemColor
+        {
+            Value = Value,
+            State = 0x0002 // Refer to System.Drawing.Color.StateARGBValueValid.
+        };
+
+        return Unsafe.As<SystemColor, Color>(ref systemColor);
     }
 
     /// <summary>
@@ -603,7 +657,7 @@ public readonly partial struct Colr :
         => R == G && G == B;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private void GetXYZ(out float x, out float y, out float z) 
+    private void GetXYZ(out float x, out float y, out float z)
         => CIEXYZ(VLinear(R), VLinear(G), VLinear(B), out x, out y, out z);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -648,20 +702,20 @@ public readonly partial struct Colr :
     /// <summary>
     ///     Compares two <see cref="Colr"/> values for equality by comparing their inner <see cref="Value"/>.
     /// </summary>
-    public static bool operator ==(Colr left, Colr right) 
+    public static bool operator ==(Colr left, Colr right)
         => left.Equals(right);
 
     /// <summary>
     ///     Compares two <see cref="Colr"/> values for non-equality by comparing their inner <see cref="Value"/>.
     /// </summary>
-    public static bool operator !=(Colr left, Colr right) 
+    public static bool operator !=(Colr left, Colr right)
         => !left.Equals(right);
 
     /// <summary>
     ///     Converts a <see cref="Colr"/> value to a 32-bit unsigned integer representation of RGBA.
     /// </summary>
     [CLSCompliant(false)]
-    public static implicit operator uint(Colr color) 
+    public static implicit operator uint(Colr color)
         => (uint)(color.R | (color.G << 8) | (color.B << 16) | (color.A << 24));
 
     /// <summary>
@@ -672,4 +726,26 @@ public readonly partial struct Colr :
         => new(rgba);
 
     #endregion
+}
+
+/// <summary>
+///     Provides extension methods for the Colr structure to enhance its functionality.
+/// </summary>
+public static class ColrExtensions
+{
+    private readonly static Func<object?, object> _getValueInvoker = typeof(Color)
+        .GetProperty("Value", BindingFlags.NonPublic | BindingFlags.Instance)!
+        .GetValue!;
+
+    /// <summary>
+    ///     Converts the specified Color structure to a Colr instance.
+    /// </summary>
+    /// <param name="color">The Color structure to convert.</param>
+    /// <returns>A Colr instance that represents the specified Color.</returns>
+    public static Colr ToColr(this Color color)
+    {
+        var uintColorValue = unchecked((uint)(long)_getValueInvoker(color));
+
+        return new Colr(uintColorValue);
+    }
 }
